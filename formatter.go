@@ -54,6 +54,7 @@ type entry struct {
 	Timestamp      string          `json:"timestamp,omitempty"`
 	ServiceContext *serviceContext `json:"serviceContext,omitempty"`
 	Message        string          `json:"message,omitempty"`
+	StackTrace     string          `json:"stacktrace,omitempty`
 	Severity       severity        `json:"severity,omitempty"`
 	Context        *context        `json:"context,omitempty"`
 }
@@ -157,7 +158,8 @@ func (f *Formatter) Format(e *logrus.Entry) ([]byte, error) {
 		// Reporting expects it to be a part of the message so we append it
 		// instead.
 		if err, ok := ee.Context.Data["error"]; ok {
-			ee.Message = fmt.Sprintf("%s: %+v", e.Message, err)
+			ee.Message = fmt.Sprintf("%s: %v", e.Message, err)
+			ee.StackTrace = fmt.Sprintf("%+v", err)
 			delete(ee.Context.Data, "error")
 		} else {
 			ee.Message = e.Message
