@@ -157,7 +157,7 @@ func (f *Formatter) Format(e *logrus.Entry) ([]byte, error) {
 		// Reporting expects it to be a part of the message so we append it
 		// instead.
 		if err, ok := ee.Context.Data["error"]; ok {
-			ee.Message = fmt.Sprintf("%s: %s", e.Message, err)
+			ee.Message = fmt.Sprintf("%s: %+v", e.Message, err)
 			delete(ee.Context.Data, "error")
 		} else {
 			ee.Message = e.Message
