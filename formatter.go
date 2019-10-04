@@ -42,6 +42,7 @@ type reportLocation struct {
 	FilePath     string `json:"filePath,omitempty"`
 	LineNumber   int    `json:"lineNumber,omitempty"`
 	FunctionName string `json:"functionName,omitempty"`
+	StackTrace   string `json:"stacktrace,omitempty"`
 }
 
 type context struct {
@@ -154,12 +155,24 @@ func (f *Formatter) Format(e *logrus.Entry) ([]byte, error) {
 			Version: f.Version,
 		}
 
+		// Extract report location from call stack.
+		if c, err := f.errorOrigin(); err == nil {
+			lineNumber, _ := strconv.ParseInt(fmt.Sprintf("%d", c), 10, 64)
+
+			ee.Context.ReportLocation = &reportLocation{
+				FilePath:     fmt.Sprintf("%+s", c),
+				LineNumber:   int(lineNumber),
+				FunctionName: fmt.Sprintf("%n", c),
+			}
+		}
+
 		// When using WithError(), the error is sent separately, but Error
 		// Reporting expects it to be a part of the message so we append it
 		// instead.
 		if err, ok := ee.Context.Data["error"]; ok {
 			ee.Message = fmt.Sprintf("%s: %v", e.Message, err)
 			ee.StackTrace = fmt.Sprintf("%+v", err)
+			ee.Context.ReportLocation.StackTrace = fmt.Sprintf("%+v", err)
 			delete(ee.Context.Data, "error")
 		} else {
 			ee.Message = e.Message
@@ -174,16 +187,6 @@ func (f *Formatter) Format(e *logrus.Entry) ([]byte, error) {
 			}
 		}
 
-		// Extract report location from call stack.
-		if c, err := f.errorOrigin(); err == nil {
-			lineNumber, _ := strconv.ParseInt(fmt.Sprintf("%d", c), 10, 64)
-
-			ee.Context.ReportLocation = &reportLocation{
-				FilePath:     fmt.Sprintf("%+s", c),
-				LineNumber:   int(lineNumber),
-				FunctionName: fmt.Sprintf("%n", c),
-			}
-		}
 	}
 
 	b, err := json.Marshal(ee)
