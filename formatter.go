@@ -223,7 +223,7 @@ func (f *Formatter) ToEntry(e *logrus.Entry) (Entry, error) {
 		if c, err := f.errorOrigin(); err == nil {
 			lineNumber, _ := strconv.ParseInt(fmt.Sprintf("%d", c), 10, 64)
 
-			ee.Context.ReportLocation = &reportLocation{
+			ee.Context.ReportLocation = &ReportLocation{
 				FilePath:     fmt.Sprintf("%+s", c),
 				LineNumber:   int(lineNumber),
 				FunctionName: fmt.Sprintf("%n", c),
